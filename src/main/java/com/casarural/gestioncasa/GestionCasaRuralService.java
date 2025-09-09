@@ -125,7 +125,8 @@ public class GestionCasaRuralService {
     // ===== GESTIÓN DE HABITACIONES =====
     
     public void darAltaHabitacion() {
-        System.out.println("\n🏠 === DAR DE ALTA HABITACIÓN ===");
+        System.out.println("\n🏨 DAR DE ALTA HABITACIÓN");
+        System.out.println("=".repeat(40));
         
         System.out.print("Código de la habitación: ");
         String codigo = scanner.nextLine().trim();
@@ -133,11 +134,9 @@ public class GestionCasaRuralService {
         System.out.print("Descripción: ");
         String descripcion = scanner.nextLine().trim();
         
-        System.out.print("Capacidad (personas): ");
-        int capacidad = Integer.parseInt(scanner.nextLine().trim());
+        int capacidad = leerEnteroPositivo("Capacidad (personas): ");
         
-        System.out.print("Precio por noche (€): ");
-        BigDecimal precioNoche = new BigDecimal(scanner.nextLine().trim());
+        BigDecimal precioNoche = leerBigDecimal("Precio por noche (€): ");
         
         try {
             Habitacion habitacion = new Habitacion(codigo, descripcion, capacidad, precioNoche);
@@ -233,7 +232,7 @@ public class GestionCasaRuralService {
         listarClientes();
         
         System.out.print("Número del cliente a eliminar: ");
-        int numCliente = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        int numCliente = leerEnteroPositivo("Seleccione el número del cliente: ") - 1;
         
         if (numCliente < 0 || numCliente >= clientes.size()) {
             System.out.println("❌ Número de cliente no válido.");
@@ -310,22 +309,7 @@ public class GestionCasaRuralService {
         listarClientes();
         System.out.print("Número del cliente: ");
         
-        int numCliente = -1;
-        boolean clienteValido = false;
-        while (!clienteValido) {
-            try {
-                numCliente = Integer.parseInt(scanner.nextLine().trim()) - 1;
-                if (numCliente < 0 || numCliente >= clientes.size()) {
-                    System.out.println("❌ Cliente no válido. Debe ingresar un número entre 1 y " + clientes.size());
-                    System.out.print("Número del cliente: ");
-                } else {
-                    clienteValido = true;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("❌ Entrada no válida. Debe ingresar un número entero correspondiente a un cliente existente.");
-                System.out.print("Número del cliente: ");
-            }
-        }
+        int numCliente = leerEnteroPositivo("Seleccione el número del cliente: ") - 1;
         Cliente cliente = clientes.get(numCliente);
         
         // Seleccionar habitación
@@ -336,22 +320,7 @@ public class GestionCasaRuralService {
         }
         System.out.print("Número de la habitación: ");
         
-        int numHabitacion = -1;
-        boolean habitacionValida = false;
-        while (!habitacionValida) {
-            try {
-                numHabitacion = Integer.parseInt(scanner.nextLine().trim()) - 1;
-                if (numHabitacion < 0 || numHabitacion >= disponibles.size()) {
-                    System.out.println("❌ Habitación no válida. Debe ingresar un número entre 1 y " + disponibles.size());
-                    System.out.print("Número de la habitación: ");
-                } else {
-                    habitacionValida = true;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("❌ Entrada no válida. Debe ingresar un número entero correspondiente a una habitación disponible.");
-                System.out.print("Número de la habitación: ");
-            }
-        }
+        int numHabitacion = leerEnteroPositivo("Seleccione el número de la habitación: ") - 1;
         Habitacion habitacion = disponibles.get(numHabitacion);
         
         // Ingresar fechas
@@ -417,7 +386,7 @@ public class GestionCasaRuralService {
         listarReservas();
         
         System.out.print("Número de la reserva: ");
-        int numReserva = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        int numReserva = leerEnteroPositivo("Seleccione el número de la reserva: ") - 1;
         
         if (numReserva < 0 || numReserva >= reservas.size()) {
             System.out.println("❌ Reserva no válida.");
@@ -433,7 +402,7 @@ public class GestionCasaRuralService {
         System.out.println("4. COMPLETADA");
         System.out.print("Seleccione nuevo estado: ");
         
-        int opcionEstado = Integer.parseInt(scanner.nextLine().trim());
+        int opcionEstado = leerEntero("Nuevo estado (1=Pendiente, 2=Confirmada, 3=Cancelada): ");
         EstadoReserva nuevoEstado = null;
         
         switch (opcionEstado) {
@@ -484,7 +453,7 @@ public class GestionCasaRuralService {
         }
         
         System.out.print("Número de la reserva: ");
-        int numReserva = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        int numReserva = leerEnteroPositivo("Seleccione el número de la reserva: ") - 1;
         
         if (numReserva < 0 || numReserva >= reservasSinPago.size()) {
             System.out.println("❌ Reserva no válida.");
@@ -498,7 +467,7 @@ public class GestionCasaRuralService {
         System.out.println("2. Efectivo");
         System.out.print("Seleccione método de pago: ");
         
-        int metodoPago = Integer.parseInt(scanner.nextLine().trim());
+        int metodoPago = leerEntero("Método de pago (1=Efectivo, 2=Tarjeta): ");
         Pago pago = null;
         
         try {
@@ -521,7 +490,7 @@ public class GestionCasaRuralService {
             } else if (metodoPago == 2) {
                 // Pago en efectivo
                 System.out.print("Importe recibido en efectivo (€): ");
-                BigDecimal importeEfectivo = new BigDecimal(scanner.nextLine().trim());
+                BigDecimal importeEfectivo = leerBigDecimal("Importe en efectivo (€): ");
                 
                 // Validar que el importe en efectivo sea suficiente
                 if (importeEfectivo.compareTo(reserva.getPrecioTotal()) < 0) {
@@ -579,7 +548,7 @@ public class GestionCasaRuralService {
         }
         
         System.out.print("Número de la reserva: ");
-        int numReserva = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        int numReserva = leerEnteroPositivo("Seleccione el número de la reserva: ") - 1;
         
         if (numReserva < 0 || numReserva >= reservasConPago.size()) {
             System.out.println("❌ Reserva no válida.");
@@ -705,6 +674,61 @@ public class GestionCasaRuralService {
             this.casaRural = casaRural;
             this.clientes = clientes;
             this.reservas = reservas;
+        }
+    }
+
+    /**
+     * Lee un entero de la entrada estándar de manera segura
+     * @param mensaje Mensaje a mostrar al usuario
+     * @return El entero leído o -1 si hay error
+     */
+    private int leerEntero(String mensaje) {
+        while (true) {
+            try {
+                System.out.print(mensaje);
+                String input = scanner.nextLine().trim();
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Error: Debe introducir un número entero válido. Inténtelo de nuevo.");
+            }
+        }
+    }
+
+    /**
+     * Lee un entero positivo de la entrada estándar de manera segura
+     * @param mensaje Mensaje a mostrar al usuario
+     * @return El entero positivo leído
+     */
+    private int leerEnteroPositivo(String mensaje) {
+        while (true) {
+            int numero = leerEntero(mensaje);
+            if (numero > 0) {
+                return numero;
+            } else {
+                System.out.println("❌ Error: El número debe ser mayor que 0. Inténtelo de nuevo.");
+            }
+        }
+    }
+
+    /**
+     * Lee un BigDecimal de la entrada estándar de manera segura
+     * @param mensaje Mensaje a mostrar al usuario
+     * @return El BigDecimal leído o null si hay error
+     */
+    private BigDecimal leerBigDecimal(String mensaje) {
+        while (true) {
+            try {
+                System.out.print(mensaje);
+                String input = scanner.nextLine().trim();
+                BigDecimal valor = new BigDecimal(input);
+                if (valor.compareTo(BigDecimal.ZERO) >= 0) {
+                    return valor;
+                } else {
+                    System.out.println("❌ Error: El precio debe ser mayor o igual a 0. Inténtelo de nuevo.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Error: Debe introducir un número decimal válido (ej: 50.00). Inténtelo de nuevo.");
+            }
         }
     }
 }
