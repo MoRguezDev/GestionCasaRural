@@ -167,8 +167,17 @@ public class GestionCasaRuralService {
     public void registrarCliente() {
         System.out.println("\n👤 === REGISTRAR NUEVO CLIENTE ===");
         
-        System.out.print("Nombre completo: ");
-        String nombre = scanner.nextLine().trim();
+        // Validar nombre (sin números)
+        String nombre;
+        do {
+            System.out.print("Nombre completo: ");
+            nombre = scanner.nextLine().trim();
+            if (nombre.isEmpty()) {
+                System.out.println("❌ El nombre no puede estar vacío.");
+            } else if (!nombre.matches("^[a-zA-ZÀ-ÿ\\s]+$")) {
+                System.out.println("❌ El nombre solo puede contener letras y espacios.");
+            }
+        } while (nombre.isEmpty() || !nombre.matches("^[a-zA-ZÀ-ÿ\\s]+$"));
         
         System.out.print("Número de documento: ");
         String numeroDocumento = scanner.nextLine().trim();
@@ -176,8 +185,17 @@ public class GestionCasaRuralService {
         System.out.print("Email: ");
         String email = scanner.nextLine().trim();
         
-        System.out.print("Teléfono: ");
-        String telefono = scanner.nextLine().trim();
+        // Validar teléfono (solo números)
+        String telefono;
+        do {
+            System.out.print("Teléfono: ");
+            telefono = scanner.nextLine().trim();
+            if (telefono.isEmpty()) {
+                System.out.println("❌ El teléfono no puede estar vacío.");
+            } else if (!telefono.matches("^\\d+$")) {
+                System.out.println("❌ El teléfono solo puede contener números.");
+            }
+        } while (telefono.isEmpty() || !telefono.matches("^\\d+$"));
         
         Cliente cliente = new Cliente(nombre, numeroDocumento, email, telefono);
         clientes.add(cliente);
@@ -201,6 +219,72 @@ public class GestionCasaRuralService {
             System.out.println("  Teléfono: " + cliente.getTelefono());
         }
         System.out.println("\n=================================");
+    }
+
+    public void eliminarCliente() {
+        if (clientes.isEmpty()) {
+            System.out.println("No hay clientes registrados para eliminar.");
+            return;
+        }
+        
+        System.out.println("\n🗑️ === ELIMINAR CLIENTE ===");
+        
+        // Mostrar lista de clientes
+        listarClientes();
+        
+        System.out.print("Número del cliente a eliminar: ");
+        int numCliente = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        
+        if (numCliente < 0 || numCliente >= clientes.size()) {
+            System.out.println("❌ Número de cliente no válido.");
+            return;
+        }
+        
+        Cliente clienteAEliminar = clientes.get(numCliente);
+        
+        // Verificar si el cliente tiene reservas activas (PENDIENTES o CONFIRMADAS)
+        boolean tieneReservasActivas = false;
+        boolean tieneReservasFinalizadas = false;
+        
+        for (Reserva reserva : reservas) {
+            if (reserva.getCliente().getId().equals(clienteAEliminar.getId())) {
+                EstadoReserva estado = reserva.getEstado();
+                if (estado == EstadoReserva.PENDIENTE || estado == EstadoReserva.CONFIRMADA) {
+                    tieneReservasActivas = true;
+                } else if (estado == EstadoReserva.CANCELADA || estado == EstadoReserva.COMPLETADA) {
+                    tieneReservasFinalizadas = true;
+                }
+            }
+        }
+        
+        if (tieneReservasActivas) {
+            System.out.println("❌ No se puede eliminar el cliente '" + clienteAEliminar.getNombre() + "' porque tiene reservas activas.");
+            System.out.println("💡 Primero debe cancelar todas las reservas activas del cliente antes de eliminarlo.");
+            return;
+        }
+        
+        if (tieneReservasFinalizadas) {
+            System.out.println("⚠️ El cliente '" + clienteAEliminar.getNombre() + "' tiene reservas finalizadas (canceladas o completadas).");
+            System.out.println("ℹ️ Estas reservas se mantendrán en el historial después de eliminar el cliente.");
+        }
+        
+        // Confirmar eliminación
+        System.out.println("\n¿Está seguro de que desea eliminar al cliente?");
+        System.out.println("Cliente: " + clienteAEliminar.getNombre());
+        System.out.println("Documento: " + clienteAEliminar.getNumeroDocumento());
+        System.out.println("Email: " + clienteAEliminar.getEmail());
+        System.out.println("Teléfono: " + clienteAEliminar.getTelefono());
+        System.out.print("Confirmar eliminación (s/n): ");
+        
+        String confirmacion = scanner.nextLine().trim().toLowerCase();
+        
+        if (confirmacion.equals("s") || confirmacion.equals("si")) {
+            // Eliminar el cliente
+            clientes.remove(numCliente);
+            System.out.println("✅ Cliente eliminado correctamente: " + clienteAEliminar.getNombre());
+        } else {
+            System.out.println("ℹ️ Operación cancelada.");
+        }
     }
 
     // ===== GESTIÓN DE RESERVAS =====

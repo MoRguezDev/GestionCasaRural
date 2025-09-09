@@ -115,7 +115,8 @@ public class Main {
             System.out.println("=".repeat(40));
             System.out.println("1. ➕ Registrar nuevo cliente");
             System.out.println("2. 📋 Listar clientes");
-            System.out.println("3. 🔙 Volver al menú principal");
+            System.out.println("3. 🗑️ Eliminar cliente");
+            System.out.println("4. 🔙 Volver al menú principal");
             System.out.println("=".repeat(40));
             System.out.print("Seleccione una opción: ");
             
@@ -129,6 +130,9 @@ public class Main {
                     servicio.listarClientes();
                     break;
                 case 3:
+                    servicio.eliminarCliente();
+                    break;
+                case 4:
                     volver = true;
                     break;
                 default:
@@ -233,4 +237,5 @@ public class Main {
             return -1; // Opción inválida
         }
     }
+
 }
