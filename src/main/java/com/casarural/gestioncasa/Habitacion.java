@@ -2,6 +2,7 @@ package com.casarural.gestioncasa;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import com.casarural.gestioncasa.excepciones.ImporteInvalidoExcepcion;
 
 public class Habitacion {
     private UUID id;
@@ -75,7 +76,14 @@ public class Habitacion {
         return precioNoche;
     }
     
-    public void setPrecioNoche(BigDecimal precioNoche) {
+    // Método setPrecioNoche con validación
+    public void setPrecioNoche(BigDecimal precioNoche) throws ImporteInvalidoExcepcion {
+        if (precioNoche == null) {
+            throw new ImporteInvalidoExcepcion("El precio por noche no puede ser nulo");
+        }
+        if (precioNoche.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ImporteInvalidoExcepcion("El precio por noche debe ser mayor que cero: " + precioNoche);
+        }
         this.precioNoche = precioNoche;
     }
     

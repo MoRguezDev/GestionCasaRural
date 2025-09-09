@@ -1,6 +1,7 @@
 package com.casarural.gestioncasa.pago;
 
 import java.math.BigDecimal;
+import com.casarural.gestioncasa.excepciones.ImporteInvalidoExcepcion;
 
 public class PagoEfectivo extends Pago {
     private BigDecimal importeEfectivo;
@@ -13,9 +14,17 @@ public class PagoEfectivo extends Pago {
         this.importeDevuelto = BigDecimal.ZERO;
     }
     
-    // Constructor con parámetros (sin importeDevuelto)
-    public PagoEfectivo(BigDecimal importe, String metodoPago, BigDecimal importeEfectivo) {
+    // Constructor con validación
+    public PagoEfectivo(BigDecimal importe, String metodoPago, BigDecimal importeEfectivo) throws ImporteInvalidoExcepcion {
         super(importe, metodoPago);
+        
+        if (importeEfectivo == null) {
+            throw new ImporteInvalidoExcepcion("El importe en efectivo no puede ser nulo");
+        }
+        if (importeEfectivo.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ImporteInvalidoExcepcion("El importe en efectivo no puede ser negativo: " + importeEfectivo);
+        }
+        
         this.importeEfectivo = importeEfectivo;
         this.importeDevuelto = calcularImporteDevuelto(importeEfectivo, importe);
     }

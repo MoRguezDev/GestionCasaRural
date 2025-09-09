@@ -3,6 +3,7 @@ package com.casarural.gestioncasa.pago;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import com.casarural.gestioncasa.excepciones.ImporteInvalidoExcepcion;
 
 public abstract class Pago {
     private UUID id;
@@ -39,7 +40,13 @@ public abstract class Pago {
     public String getMetodoPago() {
         return metodoPago;
     }
-    public void setImporte(BigDecimal importe) {
+    public void setImporte(BigDecimal importe) throws ImporteInvalidoExcepcion {
+        if (importe == null) {
+            throw new ImporteInvalidoExcepcion("El importe no puede ser nulo");
+        }
+        if (importe.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ImporteInvalidoExcepcion("El importe no puede ser negativo: " + importe);
+        }
         this.importe = importe;
     }
     

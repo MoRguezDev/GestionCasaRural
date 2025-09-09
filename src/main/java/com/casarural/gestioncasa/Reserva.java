@@ -8,6 +8,8 @@ import java.util.UUID;
 import com.casarural.gestioncasa.modelo.EstadoReserva;
 import com.casarural.gestioncasa.pago.Pago;
 import com.casarural.gestioncasa.excepciones.EstadoReservaExcepcion;
+import com.casarural.gestioncasa.excepciones.FechasInvalidasExcepcion;
+import com.casarural.gestioncasa.excepciones.ImporteInvalidoExcepcion;
 
 public class Reserva {
     private UUID id;
@@ -34,7 +36,10 @@ public class Reserva {
     }
 
     // Constructor con parámetros
-    public Reserva(Cliente cliente, Habitacion habitacion, LocalDateTime fechaInicio, LocalDateTime fechaFin, BigDecimal precioTotal) {
+    public Reserva(Cliente cliente, Habitacion habitacion, LocalDateTime fechaInicio, LocalDateTime fechaFin, BigDecimal precioTotal) throws FechasInvalidasExcepcion {
+        // Validar fechas antes de crear la reserva
+        validarFechas(fechaInicio, fechaFin);
+        
         this.id = UUID.randomUUID();
         this.cliente = cliente;
         this.habitacion = habitacion;
@@ -47,7 +52,10 @@ public class Reserva {
     }
 
     // Constructor con parámetros (con estado personalizado)
-    public Reserva(Cliente cliente, Habitacion habitacion, LocalDateTime fechaInicio, LocalDateTime fechaFin, BigDecimal precioTotal, EstadoReserva estado) {
+    public Reserva(Cliente cliente, Habitacion habitacion, LocalDateTime fechaInicio, LocalDateTime fechaFin, BigDecimal precioTotal, EstadoReserva estado) throws FechasInvalidasExcepcion {
+        // Validar fechas antes de crear la reserva
+        validarFechas(fechaInicio, fechaFin);
+        
         this.id = UUID.randomUUID();
         this.cliente = cliente;
         this.habitacion = habitacion;
@@ -60,7 +68,10 @@ public class Reserva {
     }
 
     // Constructor con parámetros (con pago incluido)
-    public Reserva(Cliente cliente, Habitacion habitacion, LocalDateTime fechaInicio, LocalDateTime fechaFin, BigDecimal precioTotal, EstadoReserva estado, Pago pago) {
+    public Reserva(Cliente cliente, Habitacion habitacion, LocalDateTime fechaInicio, LocalDateTime fechaFin, BigDecimal precioTotal, EstadoReserva estado, Pago pago) throws FechasInvalidasExcepcion {
+        // Validar fechas antes de crear la reserva
+        validarFechas(fechaInicio, fechaFin);
+        
         this.id = UUID.randomUUID();
         this.cliente = cliente;
         this.habitacion = habitacion;
@@ -109,16 +120,24 @@ public class Reserva {
     public void setHabitacion(Habitacion habitacion) {
         this.habitacion = habitacion;
     }
-    public void setFechaInicio(LocalDateTime fechaInicio) {
+    public void setFechaInicio(LocalDateTime fechaInicio) throws FechasInvalidasExcepcion {
+        validarFechas(fechaInicio, this.fechaFin);
         this.fechaInicio = fechaInicio;
     }
-    public void setFechaFin(LocalDateTime fechaFin) {
+    public void setFechaFin(LocalDateTime fechaFin) throws FechasInvalidasExcepcion {
+        validarFechas(this.fechaInicio, fechaFin);
         this.fechaFin = fechaFin;
     }
     public void setNoches(int noches) {
         this.noches = noches;
     }
-    public void setPrecioTotal(BigDecimal precioTotal) {
+    public void setPrecioTotal(BigDecimal precioTotal) throws ImporteInvalidoExcepcion {
+        if (precioTotal == null) {
+            throw new ImporteInvalidoExcepcion("El precio total no puede ser nulo");
+        }
+        if (precioTotal.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ImporteInvalidoExcepcion("El precio total no puede ser negativo: " + precioTotal);
+        }
         this.precioTotal = precioTotal;
     }
     public void setEstado(EstadoReserva estado) {
@@ -153,7 +172,7 @@ public class Reserva {
     }
 
     // Método para asociar una reserva a un pago
-    public void asociarPago(Pago pago) throws EstadoReservaExcepcion {
+    public void asociarPago(Pago pago) throws EstadoReservaExcepcion, ImporteInvalidoExcepcion {
         // Validar que el pago no sea null
         if (pago == null) {
             throw new EstadoReservaExcepcion("El pago no puede ser nulo");
@@ -189,13 +208,13 @@ public class Reserva {
     }
 
     // Método auxiliar para validar el importe del pago según su tipo
-    private void validarImportePago(Pago pago) throws EstadoReservaExcepcion {
+    private void validarImportePago(Pago pago) throws ImporteInvalidoExcepcion, EstadoReservaExcepcion {
         String metodoPago = pago.getMetodoPago().toLowerCase();
         
         if (metodoPago.contains("efectivo")) {
             // Para pagos en efectivo: el importe pagado debe ser mayor o igual al precio total
             if (pago.getImporte().compareTo(this.precioTotal) < 0) {
-                throw new EstadoReservaExcepcion(
+                throw new ImporteInvalidoExcepcion(
                     "Pago insuficiente. Importe pagado: " + pago.getImporte() + "€, Precio total: " + this.precioTotal + "€"
                 );
             }
@@ -204,14 +223,14 @@ public class Reserva {
             // Para pagos con tarjeta: el importe debe coincidir exactamente (con pequeña tolerancia)
             BigDecimal diferencia = pago.getImporte().subtract(this.precioTotal).abs();
             if (diferencia.compareTo(new BigDecimal("0.01")) > 0) {
-                throw new EstadoReservaExcepcion(
+                throw new ImporteInvalidoExcepcion(
                     "El importe del pago con tarjeta debe coincidir exactamente. Importe pagado: " + pago.getImporte() + "€, Precio total: " + this.precioTotal + "€"
                 );
             }
         } else {
             // Para otros métodos de pago: permitir flexibilidad pero no pagos insuficientes
             if (pago.getImporte().compareTo(this.precioTotal) < 0) {
-                throw new EstadoReservaExcepcion(
+                throw new ImporteInvalidoExcepcion(
                     "Pago insuficiente. Importe pagado: " + pago.getImporte() + "€, Precio total: " + this.precioTotal + "€"
                 );
             }
@@ -219,7 +238,7 @@ public class Reserva {
     }
 
     // Método para calcular el precio total de la reserva
-    public BigDecimal calcularPrecioTotal() throws EstadoReservaExcepcion {
+    public BigDecimal calcularPrecioTotal() throws EstadoReservaExcepcion, FechasInvalidasExcepcion {
         // Validar que tengamos los datos necesarios
         if (this.habitacion == null) {
             throw new EstadoReservaExcepcion("No se puede calcular el precio: la habitación no está asignada");
@@ -233,16 +252,14 @@ public class Reserva {
             throw new EstadoReservaExcepcion("No se puede calcular el precio: el precio por noche de la habitación no es válido");
         }
         
-        // Validar que la fecha de fin sea posterior a la fecha de inicio
-        if (this.fechaFin.isBefore(this.fechaInicio) || this.fechaFin.isEqual(this.fechaInicio)) {
-            throw new EstadoReservaExcepcion("La fecha de fin debe ser posterior a la fecha de inicio");
-        }
+        // Validar fechas usando la nueva excepción
+        validarFechas(this.fechaInicio, this.fechaFin);
         
         // Calcular el número de noches
         this.noches = (int) ChronoUnit.DAYS.between(this.fechaInicio.toLocalDate(), this.fechaFin.toLocalDate());
         
         if (this.noches <= 0) {
-            throw new EstadoReservaExcepcion("El número de noches debe ser mayor a 0");
+            throw new FechasInvalidasExcepcion("El número de noches debe ser mayor a 0");
         }
         
         // Calcular el precio total: precio por noche * número de noches
@@ -251,6 +268,25 @@ public class Reserva {
         System.out.println("Precio total calculado: " + this.precioTotal + "€ (" + this.noches + " noches x " + this.habitacion.getPrecioNoche() + "€/noche)");
         
         return this.precioTotal;
+    }
+
+    // Método auxiliar para validar fechas
+    private void validarFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin) throws FechasInvalidasExcepcion {
+        if (fechaInicio == null) {
+            throw new FechasInvalidasExcepcion("La fecha de inicio no puede ser nula");
+        }
+        
+        if (fechaFin == null) {
+            throw new FechasInvalidasExcepcion("La fecha de fin no puede ser nula");
+        }
+        
+        if (fechaFin.isBefore(fechaInicio) || fechaFin.isEqual(fechaInicio)) {
+            throw new FechasInvalidasExcepcion("La fecha de fin debe ser posterior a la fecha de inicio");
+        }
+        
+        if (fechaInicio.isBefore(LocalDateTime.now())) {
+            throw new FechasInvalidasExcepcion("La fecha de inicio no puede ser anterior a la fecha actual");
+        }
     }
 
     // Método para mostrar información completa de la reserva
