@@ -537,6 +537,37 @@ public class GestionCasaRuralService {
     public void crearDatosPrueba() {
         System.out.println("\n🧪 === CREANDO DATOS DE PRUEBA ===");
         
+        // Verificar si ya existen datos en el sistema
+        boolean datosExistentes = (casaRural.getNombre() != null && !casaRural.getNombre().isEmpty()) || 
+                                 !casaRural.getHabitaciones().isEmpty() || 
+                                 !clientes.isEmpty() || 
+                                 !reservas.isEmpty();
+        
+        if (datosExistentes) {
+            System.out.println("⚠️  Ya existen datos en el sistema:");
+            if (!casaRural.getNombre().isEmpty()) {
+                System.out.println("   - Casa Rural: " + casaRural.getNombre());
+            }
+            System.out.println("   - " + casaRural.getHabitaciones().size() + " habitaciones");
+            System.out.println("   - " + clientes.size() + " clientes");
+            System.out.println("   - " + reservas.size() + " reservas");
+            
+            System.out.println("\n¿Desea recrear los datos de prueba? (Se perderán los datos actuales) [s/N]: ");
+            Scanner scanner = new Scanner(System.in);
+            String respuesta = scanner.nextLine().trim().toLowerCase();
+            
+            if (!respuesta.equals("s") && !respuesta.equals("si")) {
+                System.out.println("ℹ️  Operación cancelada. Los datos existentes se mantendrán.");
+                return;
+            }
+            
+            // Limpiar datos existentes
+            casaRural = new CasaRural();
+            clientes.clear();
+            reservas.clear();
+            System.out.println("🗑️  Datos anteriores eliminados.");
+        }
+        
         try {
             // Configurar casa rural
             casaRural.setId(UUID.randomUUID());
