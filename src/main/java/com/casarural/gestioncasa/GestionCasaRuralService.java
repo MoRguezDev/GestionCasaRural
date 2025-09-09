@@ -439,6 +439,14 @@ public class GestionCasaRuralService {
                 System.out.print("Importe recibido en efectivo (€): ");
                 BigDecimal importeEfectivo = new BigDecimal(scanner.nextLine().trim());
                 
+                // Validar que el importe en efectivo sea suficiente
+                if (importeEfectivo.compareTo(reserva.getPrecioTotal()) < 0) {
+                    System.out.println("❌ Error: El importe en efectivo debe ser mayor o igual al precio total.");
+                    System.out.println("   Precio total: " + reserva.getPrecioTotal() + "€");
+                    System.out.println("   Importe recibido: " + importeEfectivo + "€");
+                    return;
+                }
+                
                 pago = new PagoEfectivo(reserva.getPrecioTotal(), "Efectivo", importeEfectivo);
                 
             } else {
@@ -452,6 +460,75 @@ public class GestionCasaRuralService {
             
         } catch (Exception e) {
             System.out.println("❌ Error al procesar el pago: " + e.getMessage());
+        }
+    }
+
+    // ===== ANULAR PAGOS =====
+
+    public void anularPago() {
+        if (reservas.isEmpty()) {
+            System.out.println("No hay reservas registradas.");
+            return;
+        }
+        
+        System.out.println("\n❌ === ANULAR PAGO DE RESERVA ===");
+        
+        // Mostrar solo reservas con pago
+        List<Reserva> reservasConPago = new ArrayList<>();
+        for (Reserva reserva : reservas) {
+            if (reserva.getPago() != null) {
+                reservasConPago.add(reserva);
+            }
+        }
+        
+        if (reservasConPago.isEmpty()) {
+            System.out.println("No hay reservas con pago asociado.");
+            return;
+        }
+        
+        System.out.println("Reservas con pago asociado:");
+        for (int i = 0; i < reservasConPago.size(); i++) {
+            Reserva reserva = reservasConPago.get(i);
+            Pago pago = reserva.getPago();
+            System.out.println((i + 1) + ". " + reserva.getCliente().getNombre() + " - " + reserva.getHabitacion().getCodigo() + 
+                            " (" + pago.getMetodoPago() + " - " + pago.getImporte() + "€)");
+        }
+        
+        System.out.print("Número de la reserva: ");
+        int numReserva = Integer.parseInt(scanner.nextLine().trim()) - 1;
+        
+        if (numReserva < 0 || numReserva >= reservasConPago.size()) {
+            System.out.println("❌ Reserva no válida.");
+            return;
+        }
+        
+        Reserva reserva = reservasConPago.get(numReserva);
+        
+        // Confirmar anulación
+        System.out.println("\n¿Está seguro de que desea anular el pago?");
+        System.out.println("Reserva: " + reserva.getCliente().getNombre() + " - " + reserva.getHabitacion().getCodigo());
+        System.out.println("Pago: " + reserva.getPago().getMetodoPago() + " - " + reserva.getPago().getImporte() + "€");
+        System.out.print("Confirmar (s/n): ");
+        
+        String confirmacion = scanner.nextLine().trim().toLowerCase();
+        
+        if (confirmacion.equals("s") || confirmacion.equals("si")) {
+            // Anular el pago
+            reserva.setPago(null);
+            
+            // Cambiar estado a PENDIENTE si estaba CONFIRMADA
+            if (reserva.getEstado() == EstadoReserva.CONFIRMADA) {
+                try {
+                    reserva.cambiarEstado(EstadoReserva.PENDIENTE);
+                } catch (EstadoReservaExcepcion e) {
+                    System.out.println("⚠️ No se pudo cambiar el estado automáticamente: " + e.getMessage());
+                }
+            }
+            
+            System.out.println("✅ Pago anulado correctamente.");
+            System.out.println("ℹ️ El estado de la reserva se cambió a PENDIENTE.");
+        } else {
+            System.out.println("ℹ️ Operación cancelada.");
         }
     }
 

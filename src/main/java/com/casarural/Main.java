@@ -180,7 +180,8 @@ public class Main {
             System.out.println("💳 GESTIÓN DE PAGOS");
             System.out.println("=".repeat(40));
             System.out.println("1. 💳 Asociar pago a reserva");
-            System.out.println("2. 🔙 Volver al menú principal");
+            System.out.println("2. ❌ Anular pago de reserva");
+            System.out.println("3. 🔙 Volver al menú principal");
             System.out.println("=".repeat(40));
             System.out.print("Seleccione una opción: ");
             
@@ -191,6 +192,9 @@ public class Main {
                     servicio.asociarPago();
                     break;
                 case 2:
+                    servicio.anularPago();
+                    break;
+                case 3:
                     volver = true;
                     break;
                 default:
