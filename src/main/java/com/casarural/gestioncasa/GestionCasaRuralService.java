@@ -454,8 +454,8 @@ public class GestionCasaRuralService {
             clientes.add(cliente);
             
             // Crear reserva
-            LocalDateTime fechaInicio = LocalDateTime.of(2024, 12, 20, 15, 0);
-            LocalDateTime fechaFin = LocalDateTime.of(2024, 12, 22, 11, 0);
+            LocalDateTime fechaInicio = LocalDateTime.of(2025, 12, 20, 15, 0);
+            LocalDateTime fechaFin = LocalDateTime.of(2025, 12, 22, 11, 0);
             BigDecimal precioTotal = hab1.getPrecioNoche().multiply(BigDecimal.valueOf(2));
             
             Reserva reserva = new Reserva(cliente, hab1, fechaInicio, fechaFin, precioTotal, EstadoReserva.CONFIRMADA);
