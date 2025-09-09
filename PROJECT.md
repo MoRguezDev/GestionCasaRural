@@ -26,7 +26,7 @@ La aplicación debe permitir las siguientes funcionalidades:
 ### Persistencia de Datos
 - Guardar y cargar todo el estado del sistema en formato JSON
 - Archivo de ejemplo: `gestion-cr.json`
-- Debe ser creado en src/main/resources/data
+- Debe ser creado en src/main/resources/data.
 
 ## Datos de Prueba Mínimos
 El sistema debe incluir como mínimo:
