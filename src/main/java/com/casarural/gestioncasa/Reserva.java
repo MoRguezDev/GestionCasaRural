@@ -376,4 +376,32 @@ public class Reserva {
         
         System.out.println("=".repeat(60));
     }
+
+    // Método para cambiar el estado de la reserva de manera controlada
+    public void cambiarEstado(EstadoReserva nuevoEstado) throws EstadoReservaExcepcion {
+        // Validar que el nuevo estado no sea null
+        if (nuevoEstado == null) {
+            throw new EstadoReservaExcepcion("El nuevo estado no puede ser nulo");
+        }
+        
+        // Validaciones de transición de estados
+        if (this.estado == EstadoReserva.CANCELADA && nuevoEstado != EstadoReserva.CANCELADA) {
+            throw new EstadoReservaExcepcion("No se puede cambiar el estado de una reserva cancelada");
+        }
+        
+        if (this.estado == EstadoReserva.COMPLETADA && nuevoEstado != EstadoReserva.COMPLETADA) {
+            throw new EstadoReservaExcepcion("No se puede cambiar el estado de una reserva completada");
+        }
+        
+        // No permitir confirmar una reserva cancelada
+        if (this.estado == EstadoReserva.CANCELADA && nuevoEstado == EstadoReserva.CONFIRMADA) {
+            throw new EstadoReservaExcepcion("No se puede confirmar una reserva cancelada");
+        }
+        
+        // Cambiar el estado
+        EstadoReserva estadoAnterior = this.estado;
+        this.estado = nuevoEstado;
+        
+        System.out.println("Estado de la reserva cambiado de " + estadoAnterior + " a " + nuevoEstado);
+    }
 }
