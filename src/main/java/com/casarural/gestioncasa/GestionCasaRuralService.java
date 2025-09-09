@@ -225,11 +225,22 @@ public class GestionCasaRuralService {
         System.out.println("\nSeleccione un cliente:");
         listarClientes();
         System.out.print("Número del cliente: ");
-        int numCliente = Integer.parseInt(scanner.nextLine().trim()) - 1;
         
-        if (numCliente < 0 || numCliente >= clientes.size()) {
-            System.out.println("❌ Cliente no válido.");
-            return;
+        int numCliente = -1;
+        boolean clienteValido = false;
+        while (!clienteValido) {
+            try {
+                numCliente = Integer.parseInt(scanner.nextLine().trim()) - 1;
+                if (numCliente < 0 || numCliente >= clientes.size()) {
+                    System.out.println("❌ Cliente no válido. Debe ingresar un número entre 1 y " + clientes.size());
+                    System.out.print("Número del cliente: ");
+                } else {
+                    clienteValido = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Entrada no válida. Debe ingresar un número entero correspondiente a un cliente existente.");
+                System.out.print("Número del cliente: ");
+            }
         }
         Cliente cliente = clientes.get(numCliente);
         
@@ -240,11 +251,22 @@ public class GestionCasaRuralService {
             System.out.println((i + 1) + ". " + hab.getCodigo() + " - " + hab.getDescripcion() + " (" + hab.getPrecioNoche() + "€/noche)");
         }
         System.out.print("Número de la habitación: ");
-        int numHabitacion = Integer.parseInt(scanner.nextLine().trim()) - 1;
         
-        if (numHabitacion < 0 || numHabitacion >= disponibles.size()) {
-            System.out.println("❌ Habitación no válida.");
-            return;
+        int numHabitacion = -1;
+        boolean habitacionValida = false;
+        while (!habitacionValida) {
+            try {
+                numHabitacion = Integer.parseInt(scanner.nextLine().trim()) - 1;
+                if (numHabitacion < 0 || numHabitacion >= disponibles.size()) {
+                    System.out.println("❌ Habitación no válida. Debe ingresar un número entre 1 y " + disponibles.size());
+                    System.out.print("Número de la habitación: ");
+                } else {
+                    habitacionValida = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Entrada no válida. Debe ingresar un número entero correspondiente a una habitación disponible.");
+                System.out.print("Número de la habitación: ");
+            }
         }
         Habitacion habitacion = disponibles.get(numHabitacion);
         
@@ -255,8 +277,10 @@ public class GestionCasaRuralService {
         String fechaFinStr = scanner.nextLine().trim();
         
         try {
-            LocalDateTime fechaInicio = LocalDateTime.parse(fechaInicioStr);
-            LocalDateTime fechaFin = LocalDateTime.parse(fechaFinStr);
+            // Usar DateTimeFormatter para parsear el formato con espacio
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime fechaInicio = LocalDateTime.parse(fechaInicioStr, formatter);
+            LocalDateTime fechaFin = LocalDateTime.parse(fechaFinStr, formatter);
             
             // Calcular precio total
             long noches = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio.toLocalDate(), fechaFin.toLocalDate());
@@ -274,6 +298,7 @@ public class GestionCasaRuralService {
             
         } catch (Exception e) {
             System.out.println("❌ Error al crear reserva: " + e.getMessage());
+            System.out.println("💡 Formato esperado: YYYY-MM-DD HH:mm (ejemplo: 2026-01-01 20:00)");
         }
     }
 
