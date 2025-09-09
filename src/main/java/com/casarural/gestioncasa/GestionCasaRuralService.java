@@ -5,8 +5,6 @@ import com.casarural.gestioncasa.pago.Pago;
 import com.casarural.gestioncasa.pago.PagoEfectivo;
 import com.casarural.gestioncasa.pago.PagoTarjeta;
 import com.casarural.gestioncasa.excepciones.EstadoReservaExcepcion;
-import com.casarural.gestioncasa.excepciones.FechasInvalidasExcepcion;
-import com.casarural.gestioncasa.excepciones.ImporteInvalidoExcepcion;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,7 +15,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -120,6 +117,161 @@ public class GestionCasaRuralService {
             System.out.println("❌ Error al cargar los datos: " + e.getMessage());
             System.out.println("ℹ️  Se iniciará con datos vacíos.");
         }
+    }
+
+    /**
+     * Carga datos desde archivo JSON verificando duplicados
+     */
+    public void cargarConVerificacion() {
+        try {
+            FileReader reader = new FileReader(ARCHIVO_JSON);
+            DatosSistema datos = gson.fromJson(reader, DatosSistema.class);
+            reader.close();
+            
+            if (datos == null) {
+                System.out.println("❌ El archivo está vacío o tiene un formato inválido.");
+                return;
+            }
+            
+            int habitacionesAgregadas = 0;
+            int habitacionesDuplicadas = 0;
+            int clientesAgregados = 0;
+            int clientesDuplicados = 0;
+            int reservasAgregadas = 0;
+            int reservasDuplicadas = 0;
+            
+            // Verificar y agregar habitaciones
+            if (datos.casaRural != null && datos.casaRural.getHabitaciones() != null) {
+                for (Habitacion hab : datos.casaRural.getHabitaciones()) {
+                    if (existeHabitacion(hab.getCodigo())) {
+                        habitacionesDuplicadas++;
+                        System.out.println("⚠️  Habitación duplicada omitida: " + hab.getCodigo());
+                    } else {
+                        casaRural.agregarHabitacion(hab);
+                        habitacionesAgregadas++;
+                        System.out.println("✅ Habitación agregada: " + hab.getCodigo());
+                    }
+                }
+            }
+            
+            // Verificar y agregar clientes
+            if (datos.clientes != null) {
+                for (Cliente cliente : datos.clientes) {
+                    if (existeCliente(cliente.getNumeroDocumento())) {
+                        clientesDuplicados++;
+                        System.out.println("⚠️  Cliente duplicado omitido: " + cliente.getNombre() + " (" + cliente.getNumeroDocumento() + ")");
+                    } else {
+                        clientes.add(cliente);
+                        clientesAgregados++;
+                        System.out.println("✅ Cliente agregado: " + cliente.getNombre());
+                    }
+                }
+            }
+            
+            // Verificar y agregar reservas
+            if (datos.reservas != null) {
+                for (Reserva reserva : datos.reservas) {
+                    if (existeReserva(reserva)) {
+                        reservasDuplicadas++;
+                        System.out.println("⚠️  Reserva duplicada omitida: " + reserva.getCliente().getNombre() + " - " + reserva.getHabitacion().getCodigo());
+                    } else {
+                        reservas.add(reserva);
+                        reservasAgregadas++;
+                        System.out.println("✅ Reserva agregada: " + reserva.getCliente().getNombre() + " - " + reserva.getHabitacion().getCodigo());
+                    }
+                }
+            }
+            
+            // Actualizar información de la casa rural si no existe
+            if (datos.casaRural != null && (casaRural.getNombre() == null || casaRural.getNombre().isEmpty())) {
+                casaRural.setId(datos.casaRural.getId());
+                casaRural.setNombre(datos.casaRural.getNombre());
+                casaRural.setDireccion(datos.casaRural.getDireccion());
+                casaRural.setTelefono(datos.casaRural.getTelefono());
+                System.out.println("✅ Información de la casa rural actualizada: " + casaRural.getNombre());
+            }
+            
+            System.out.println("\n📊 === RESUMEN DE CARGA ===");
+            System.out.println("🏠 Habitaciones: " + habitacionesAgregadas + " agregadas, " + habitacionesDuplicadas + " duplicadas");
+            System.out.println("👤 Clientes: " + clientesAgregados + " agregados, " + clientesDuplicados + " duplicados");
+            System.out.println("📅 Reservas: " + reservasAgregadas + " agregadas, " + reservasDuplicadas + " duplicadas");
+            
+            int totalAgregados = habitacionesAgregadas + clientesAgregados + reservasAgregadas;
+            int totalDuplicados = habitacionesDuplicadas + clientesDuplicados + reservasDuplicadas;
+            
+            if (totalAgregados > 0) {
+                System.out.println("✅ Carga completada: " + totalAgregados + " elementos agregados");
+            }
+            
+            if (totalDuplicados > 0) {
+                System.out.println("⚠️  " + totalDuplicados + " elementos duplicados fueron omitidos");
+            }
+            
+            if (totalAgregados == 0 && totalDuplicados == 0) {
+                System.out.println("ℹ️  No se encontraron datos nuevos para cargar");
+            }
+            
+        } catch (IOException e) {
+            System.out.println("❌ Error al cargar los datos: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Error al procesar los datos: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Verifica si ya existe una habitación con el código especificado
+     */
+    private boolean existeHabitacion(String codigo) {
+        if (codigo == null || codigo.trim().isEmpty()) {
+            return false;
+        }
+        
+        for (Habitacion hab : casaRural.getHabitaciones()) {
+            if (codigo.equals(hab.getCodigo())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si ya existe un cliente con el número de documento especificado
+     */
+    private boolean existeCliente(String numeroDocumento) {
+        if (numeroDocumento == null || numeroDocumento.trim().isEmpty()) {
+            return false;
+        }
+        
+        for (Cliente cliente : clientes) {
+            if (numeroDocumento.equals(cliente.getNumeroDocumento())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si ya existe una reserva similar (mismo cliente, habitación y fechas)
+     */
+    private boolean existeReserva(Reserva nuevaReserva) {
+        if (nuevaReserva == null || nuevaReserva.getCliente() == null || nuevaReserva.getHabitacion() == null) {
+            return false;
+        }
+        
+        for (Reserva reserva : reservas) {
+            // Comparar por cliente, habitación y fechas de inicio y fin
+            if (reserva.getCliente() != null && reserva.getHabitacion() != null &&
+                nuevaReserva.getCliente().getId() != null && nuevaReserva.getHabitacion().getId() != null &&
+                reserva.getCliente().getId().equals(nuevaReserva.getCliente().getId()) &&
+                reserva.getHabitacion().getId().equals(nuevaReserva.getHabitacion().getId()) &&
+                reserva.getFechaInicio() != null && nuevaReserva.getFechaInicio() != null &&
+                reserva.getFechaInicio().equals(nuevaReserva.getFechaInicio()) &&
+                reserva.getFechaFin() != null && nuevaReserva.getFechaFin() != null &&
+                reserva.getFechaFin().equals(nuevaReserva.getFechaFin())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ===== GESTIÓN DE HABITACIONES =====
@@ -606,8 +758,7 @@ public class GestionCasaRuralService {
             System.out.println("   - " + reservas.size() + " reservas");
             
             System.out.println("\n¿Desea recrear los datos de prueba? (Se perderán los datos actuales) [s/N]: ");
-            Scanner scanner = new Scanner(System.in);
-            String respuesta = scanner.nextLine().trim().toLowerCase();
+            String respuesta = this.scanner.nextLine().trim().toLowerCase();
             
             if (!respuesta.equals("s") && !respuesta.equals("si")) {
                 System.out.println("ℹ️  Operación cancelada. Los datos existentes se mantendrán.");

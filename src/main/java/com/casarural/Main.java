@@ -37,12 +37,15 @@ public class Main {
                     servicio.guardar();
                     break;
                 case 6:
-                    servicio.crearDatosPrueba();
+                    servicio.cargarConVerificacion();
                     break;
                 case 7:
-                    mostrarEstadisticas();
+                    servicio.crearDatosPrueba();
                     break;
                 case 8:
+                    mostrarEstadisticas();
+                    break;
+                case 9:
                     salir = true;
                     System.out.println("👋 ¡Hasta luego!");
                     break;
@@ -68,9 +71,10 @@ public class Main {
         System.out.println("3. 📅 Gestionar Reservas");
         System.out.println("4. 💳 Gestionar Pagos");
         System.out.println("5. 💾 Guardar Datos");
-        System.out.println("6. 🧪 Crear Datos de Prueba");
-        System.out.println("7. 📊 Ver Estadísticas");
-        System.out.println("8. 🚪 Salir");
+        System.out.println("6. 📂 Cargar Datos desde Archivo");
+        System.out.println("7. 🧪 Crear Datos de Prueba");
+        System.out.println("8. 📊 Ver Estadísticas");
+        System.out.println("9. 🚪 Salir");
         System.out.println("=".repeat(50));
         System.out.print("Seleccione una opción: ");
     }
@@ -227,6 +231,7 @@ public class Main {
         System.out.println("   ✅ Persistencia JSON con GSON");
         System.out.println("   ✅ Validaciones de negocio");
         System.out.println("   ✅ Manejo de excepciones");
+        System.out.println("   ✅ Carga de datos con verificación de duplicados");
     }
 
     private static int leerOpcion() {
