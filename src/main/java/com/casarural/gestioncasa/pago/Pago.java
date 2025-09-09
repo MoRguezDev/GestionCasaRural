@@ -1,5 +1,55 @@
 package com.casarural.gestioncasa.pago;
 
-public abstract class Pago {
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
+public abstract class Pago {
+    private UUID id;
+    private BigDecimal importe;
+    private LocalDateTime fechaPago;
+    private String metodoPago;
+
+    // Constructor
+    public Pago() {
+        this.id = UUID.randomUUID();
+        this.importe = BigDecimal.ZERO;
+        this.fechaPago = LocalDateTime.now();
+        this.metodoPago = "Sin metodo de pago";
+    }
+    
+    // Constructor con parámetros (sin fechaPago)
+    public Pago(BigDecimal importe, String metodoPago) {
+        this.id = UUID.randomUUID();
+        this.importe = importe;
+        this.fechaPago = LocalDateTime.now();  // Fecha automática
+        this.metodoPago = metodoPago;
+    }
+    
+    // Getters y setters
+    public UUID getId() {
+        return id;
+    }
+    public BigDecimal getImporte() {
+        return importe;
+    }
+    public LocalDateTime getFechaPago() {
+        return fechaPago;
+    }
+    public String getMetodoPago() {
+        return metodoPago;
+    }
+    public void setImporte(BigDecimal importe) {
+        this.importe = importe;
+    }
+    
+    public void setFechaPago(LocalDateTime fechaPago) {
+        this.fechaPago = fechaPago;
+    }
+    public void setMetodoPago(String metodoPago) {
+        this.metodoPago = metodoPago;
+    }
+
+    // Metodo abstracto para procesar el pago
+    public abstract void procesarPago();
 }
